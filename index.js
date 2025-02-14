@@ -5,6 +5,15 @@ import { PublicKey } from "@solana/web3.js";
 
 const [_, __, wallet, address, path, max] = process.argv;
 
+console.log(process.argv);
+
+console.log({
+  wallet,
+  address,
+  path,
+  matt,
+});
+
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
 
 async function main(address, path, max) {
