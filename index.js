@@ -11,7 +11,7 @@ console.log({
   wallet,
   address,
   path,
-  matt,
+  max,
 });
 
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
