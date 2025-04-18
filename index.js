@@ -17,6 +17,8 @@ console.log({
 
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
 
+console.log(fs.readFileSync(path, "utf8"));
+
 async function main(address, path, max) {
   const market = await nosana.jobs.getMarket(address);
   const json_flow = JSON.parse(fs.readFileSync(path, "utf8"));
