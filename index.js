@@ -6,8 +6,6 @@ import { PublicKey } from "@solana/web3.js";
 
 const [_, __, wallet, address, path, max] = process.argv;
 
-console.log(process.argv);
-
 console.log({
   wallet,
   address,
@@ -17,7 +15,9 @@ console.log({
 
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
 
+console.log("***************************");
 console.log(fs.readFileSync(path, "utf8"));
+console.log("***************************");
 
 async function main(address, path, max) {
   const market = await nosana.jobs.getMarket(address);
