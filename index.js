@@ -1,23 +1,11 @@
 #!/usr/bin/env node
 import fs from "fs";
-import os from "os";
 import { Client } from "@nosana/sdk";
 import { PublicKey } from "@solana/web3.js";
 
 const [_, __, wallet, address, path, max] = process.argv;
 
-console.log({
-  wallet,
-  address,
-  path,
-  max,
-});
-
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
-
-console.log("***************************");
-console.log(fs.readFileSync(`${os.homedir()}/${path}`, "utf8"));
-console.log("***************************");
 
 async function main(address, path, max) {
   const market = await nosana.jobs.getMarket(address);
