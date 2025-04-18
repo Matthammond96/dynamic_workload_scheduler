@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "dynamic_workload_scheduler": "node index.js"
+    "dynamic-workload-scheduler": "index.js"
   },
   "scripts": {
     "dynamic_workload_scheduler": "node index.js",
