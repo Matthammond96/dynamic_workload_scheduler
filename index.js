@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "fs";
-
+import os from "os";
 import { Client } from "@nosana/sdk";
 import { PublicKey } from "@solana/web3.js";
 
@@ -16,7 +16,7 @@ console.log({
 const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
 
 console.log("***************************");
-console.log(fs.readFileSync(path, "utf8"));
+console.log(fs.readFileSync(`${os.homedir()}/${path}`, "utf8"));
 console.log("***************************");
 
 async function main(address, path, max) {
