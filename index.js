@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 import fs from "fs";
 import { Client } from "@nosana/sdk";
-import { PublicKey } from "@solana/web3.js";
 
-const [_, __, wallet, address, path, max] = process.argv;
+const [_, __, wallet, address, path, max, network] = process.argv;
 
-const nosana = new Client("devnet", fs.readFileSync(wallet, "utf8"));
+const nosana = new Client(network ?? "mainet", fs.readFileSync(wallet, "utf8"));
+console.log("Wallet address:", nosana.solana.wallet.publicKey.toString());
+console.log(
+  `SOL balance: ${(await nosana.solana.getSolBalance()) / 1000000000}`
+);
+console.log(
+  `NOS balance: ${
+    (await nosana.solana.getNosBalance())?.uiAmount?.toString() ?? "0"
+  }`
+);
 
 async function main(address, path, max) {
   const market = await nosana.jobs.getMarket(address);
@@ -17,23 +25,24 @@ async function main(address, path, max) {
       ? max
       : Math.ceil(market.queue.length / 2);
 
-  console.log(`
-Found ${market.queue.length} hosts in queue.
-Posting ${max_job} jobs.
-  `);
+  console.log(`Found ${market.queue.length} hosts in queue.`);
+  console.log(`Posting ${max_job} jobs.`);
 
   for (let i = 0; i < max_job; i++) {
-    const response = await nosana.jobs.list(
-      ipfs_hash,
-      60,
-      new PublicKey(address)
-    );
-    console.log(`
-Job posted!
-IPFS uploaded: ${nosana.ipfs.config.gateway + ipfs_hash}
-Posted to market: https://dashboard.nosana.com/markets/${address}
-Nosana Explorer: https://dashboard.nosana.com/jobs/${response.job}
-      `);
+    try {
+      const response = await nosana.jobs.list(ipfs_hash, 60, address);
+
+      console.log("Job posted!");
+      console.log(`IPFS uploaded: ${nosana.ipfs.config.gateway + ipfs_hash}`);
+      console.log(
+        `Posted to market: https://dashboard.nosana.com/markets/${address}`
+      );
+      console.log(
+        `Nosana Explorer: https://dashboard.nosana.com/jobs/${response.job}`
+      );
+    } catch (e) {
+      console.error("Error posting job:", e);
+    }
   }
 }
 
