@@ -4,7 +4,10 @@ import { Client } from "@nosana/sdk";
 
 const [_, __, wallet, address, path, max, network] = process.argv;
 
-const nosana = new Client(network ?? "mainet", fs.readFileSync(wallet, "utf8"));
+const nosana = new Client(
+  network ?? "mainnet",
+  fs.readFileSync(wallet, "utf8")
+);
 console.log("Wallet address:", nosana.solana.wallet.publicKey.toString());
 console.log(
   `SOL balance: ${(await nosana.solana.getSolBalance()) / 1000000000}`
@@ -15,34 +18,52 @@ console.log(
   }`
 );
 
-async function main(address, path, max) {
-  const market = await nosana.jobs.getMarket(address);
+async function postJobs(address, path, job_count) {
   const json_flow = JSON.parse(fs.readFileSync(path, "utf8"));
   const ipfs_hash = await nosana.ipfs.pin(json_flow);
 
-  const max_job =
-    max && max <= Math.ceil(market.queue.length / 2)
-      ? max
-      : Math.ceil(market.queue.length / 2);
+  console.log(`Posting ${job_count} jobs.`);
 
-  console.log(`Found ${market.queue.length} hosts in queue.`);
-  console.log(`Posting ${max_job} jobs.`);
-
-  for (let i = 0; i < max_job; i++) {
+  for (let i = 0; i < job_count; i++) {
     try {
       const response = await nosana.jobs.list(ipfs_hash, 60, address);
 
-      console.log("Job posted!");
-      console.log(`IPFS uploaded: ${nosana.ipfs.config.gateway + ipfs_hash}`);
       console.log(
-        `Posted to market: https://dashboard.nosana.com/markets/${address}`
-      );
-      console.log(
-        `Nosana Explorer: https://dashboard.nosana.com/jobs/${response.job}`
+        `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
       );
     } catch (e) {
       console.error("Error posting job:", e);
     }
+  }
+}
+
+async function main(address, path, max) {
+  const market = await nosana.jobs.getMarket(address);
+
+  if (!market) {
+    console.error("Market not found.");
+    return;
+  }
+
+  switch (market.queueType) {
+    case 255:
+      console.log("Found empty market queue.");
+      await postJobs(address, path, 2);
+      break;
+    case 1:
+      let job_count = Math.ceil(market.queue.length / 2);
+
+      if (max && max <= job_count) {
+        job_count = max;
+      }
+
+      console.log("Nosana queue type detected.");
+      console.log(`Found ${market.queue.length} hosts in queue.`);
+      await postJobs(address, path, job_count);
+      break;
+    default:
+      console.error("Market job queue type not supported.");
+      return;
   }
 }
 
