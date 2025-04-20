@@ -37,7 +37,7 @@ async function postJobs(address, path, job_count) {
   }
 }
 
-async function main(address, path, max) {
+async function main(address, path, max = 0) {
   const market = await nosana.jobs.getMarket(address);
 
   if (!market) {
@@ -53,7 +53,7 @@ async function main(address, path, max) {
     case 1:
       let job_count = Math.ceil(market.queue.length / 2);
 
-      if (max && max <= job_count) {
+      if (max > 0 && max <= job_count) {
         job_count = max;
       }
 
