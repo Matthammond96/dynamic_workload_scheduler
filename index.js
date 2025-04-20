@@ -26,7 +26,7 @@ async function postJobs(address, path, job_count) {
 
   for (let i = 0; i < job_count; i++) {
     try {
-      const response = await nosana.jobs.list(ipfs_hash, 60, address);
+      const response = await nosana.jobs.list(ipfs_hash, 60 * 120, address);
 
       console.log(
         `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
