@@ -2,7 +2,7 @@
 import fs from "fs";
 import { Client } from "@nosana/sdk";
 
-const [_, __, wallet, address, path, max, network] = process.argv;
+const [_, __, wallet, address, path, timeout, max, network] = process.argv;
 
 const nosana = new Client(
   network ?? "mainnet",
@@ -26,7 +26,7 @@ async function postJobs(address, path, job_count) {
 
   for (let i = 0; i < job_count; i++) {
     try {
-      const response = await nosana.jobs.list(ipfs_hash, 60 * 120, address);
+      const response = await nosana.jobs.list(ipfs_hash, 60 * timeout, address);
 
       console.log(
         `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
