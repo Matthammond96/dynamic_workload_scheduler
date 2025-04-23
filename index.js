@@ -24,17 +24,29 @@ async function postJobs(address, path, job_count) {
 
   console.log(`Posting ${job_count} jobs.`);
 
-  for (let i = 0; i < job_count; i++) {
-    try {
-      const response = await nosana.jobs.list(ipfs_hash, 60 * timeout, address);
+  await Promise.all(
+    Array(job_count)
+      .fill(0)
+      .map(
+        () =>
+          new Promise(async (resolve) => {
+            try {
+              const response = await nosana.jobs.list(
+                ipfs_hash,
+                60 * timeout,
+                address
+              );
 
-      console.log(
-        `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
-      );
-    } catch (e) {
-      console.error("Error posting job:", e);
-    }
-  }
+              console.log(
+                `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
+              );
+            } catch (e) {
+              console.error("Error posting job:", e);
+            }
+            resolve(true);
+          })
+      )
+  );
 }
 
 async function main(address, path, max = 0) {
