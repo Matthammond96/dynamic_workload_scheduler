@@ -2,7 +2,17 @@
 import fs from "fs";
 import { Client } from "@nosana/sdk";
 
-const [_, __, wallet, address, path, timeout, max, network] = process.argv;
+const [
+  _,
+  __,
+  wallet,
+  address,
+  path,
+  timeout,
+  max,
+  network,
+  disable_empty_posting,
+] = process.argv;
 
 const nosana = new Client(
   network ?? "mainnet",
@@ -48,6 +58,10 @@ async function main(address, path, max = 0) {
   switch (market.queueType) {
     case 255:
       console.log("Found empty market queue.");
+      if (disable_empty_posting) {
+        console.log("Empty market queue posting is disabled.");
+        break;
+      }
       await postJobs(address, path, 2);
       break;
     case 1:
