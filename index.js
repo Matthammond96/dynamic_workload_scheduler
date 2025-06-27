@@ -57,11 +57,11 @@ async function main(address, path, max = 0) {
 
   switch (market.queueType) {
     case 255:
-      console.log("Found empty market queue.");
-      if (disable_empty_posting) {
+      if (disable_empty_posting === "true") {
         console.log("Empty market queue posting is disabled.");
         break;
       }
+      console.log("Found empty market queue.");
       await postJobs(address, path, 2);
       break;
     case 1:
