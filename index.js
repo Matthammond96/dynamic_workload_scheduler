@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "fs";
-import { createNosanaClient, loadWalletFromFile} from "@nosana/kit";
+import { createNosanaClient, createWalletFromBase58, createWalletFromBytes } from "@nosana/kit";
 
 const [
   _,
@@ -15,7 +15,10 @@ const [
 ] = process.argv;
 
 const nosana = createNosanaClient(network ?? "mainnet");
-nosana.wallet = await loadWalletFromFile(wallet);
+const walletFileContent = fs.readFileSync(wallet, "utf8").trim();
+nosana.wallet = walletFileContent.startsWith("[")
+  ? await createWalletFromBytes(JSON.parse(walletFileContent))
+  : await createWalletFromBase58(walletFileContent);
 console.log("Wallet address:", nosana.wallet?.address?.toString());
 console.log(
   `SOL balance: ${(await nosana.solana.getBalance()) / 1000000000}`
