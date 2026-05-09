@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import { webcrypto } from "crypto";
-if (!globalThis.crypto) globalThis.crypto = webcrypto;
 import fs from "fs";
 import { createNosanaClient, createWalletFromBase58, createWalletFromBytes } from "@nosana/kit";
 
