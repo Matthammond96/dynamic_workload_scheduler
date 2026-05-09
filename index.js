@@ -15,15 +15,13 @@ const [
 ] = process.argv;
 
 const nosana = createNosanaClient(network ?? "mainnet");
-nosana.wallet = loadWalletFromFile(wallet);
-console.log("Wallet address:", nosana.solana.wallet.publicKey.toString());
+nosana.wallet = await loadWalletFromFile(wallet);
+console.log("Wallet address:", nosana.wallet?.address?.toString());
 console.log(
-  `SOL balance: ${(await nosana.solana.getSolBalance()) / 1000000000}`
+  `SOL balance: ${(await nosana.solana.getBalance()) / 1000000000}`
 );
 console.log(
-  `NOS balance: ${
-    (await nosana.solana.getNosBalance())?.uiAmount?.toString() ?? "0"
-  }`
+  `NOS balance: ${(await nosana.nos.getBalance())?.toString() ?? "0"}`
 );
 
 async function postJobs(address, path, job_count) {
@@ -34,14 +32,15 @@ async function postJobs(address, path, job_count) {
 
   for (let i = 0; i < job_count; i++) {
     try {
-      const response = await nosana.jobs.list({
+      const instruction = await nosana.jobs.list({
         ipfsHash: ipfs_hash,
-        timeout: 60 * timeout,
+        timeout: 60 * parseInt(timeout),
         market: address
       });
 
+      const txSignature = await nosana.solana.buildSignAndSend(instruction);
       console.log(
-        `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
+        `Posted job with transaction: ${txSignature}`
       );
     } catch (e) {
       console.error("Error posting job:", e);
@@ -50,7 +49,7 @@ async function postJobs(address, path, job_count) {
 }
 
 async function main(address, path, max = 0) {
-  const market = await nosana.jobs.getMarket(address);
+  const market = await nosana.jobs.market(address);
 
   if (!market) {
     console.error("Market not found.");
@@ -58,27 +57,39 @@ async function main(address, path, max = 0) {
   }
 
   switch (market.queueType) {
-    case 255:
-      if (disable_empty_posting === "true") {
-        console.log("Empty market queue posting is disabled.");
-        break;
+    case 0: // JOB_QUEUE
+      if (market.queue.length === 0) {
+        if (disable_empty_posting === "true") {
+          console.log("Empty market queue posting is disabled.");
+          break;
+        }
+        console.log("Found empty market queue.");
+        await postJobs(address, path, 2);
+      } else {
+        console.log("Found job queue with items.");
+        let job_count = Math.ceil(market.queue.length / 2);
+
+        if (max > 0 && max <= job_count) {
+          job_count = max;
+        }
+
+        console.log(`Found ${market.queue.length} jobs in queue.`);
+        await postJobs(address, path, job_count);
       }
-      console.log("Found empty market queue.");
-      await postJobs(address, path, 2);
       break;
-    case 1:
+    case 1: // NODE_QUEUE
       let job_count = Math.ceil(market.queue.length / 2);
 
       if (max > 0 && max <= job_count) {
         job_count = max;
       }
 
-      console.log("Nosana queue type detected.");
-      console.log(`Found ${market.queue.length} hosts in queue.`);
+      console.log("Node queue type detected.");
+      console.log(`Found ${market.queue.length} nodes in queue.`);
       await postJobs(address, path, job_count);
       break;
     default:
-      console.error("Market job queue type not supported.");
+      console.error("Market queue type not supported.");
       return;
   }
 }
