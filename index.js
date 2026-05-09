@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "fs";
-import { Client } from "@nosana/sdk";
+import { createNosanaClient, loadWalletFromFile} from "@nosana/kit";
 
 const [
   _,
@@ -14,10 +14,8 @@ const [
   disable_empty_posting,
 ] = process.argv;
 
-const nosana = new Client(
-  network ?? "mainnet",
-  fs.readFileSync(wallet, "utf8")
-);
+const nosana = createNosanaClient(network ?? "mainnet");
+nosana.wallet = loadWalletFromFile(wallet);
 console.log("Wallet address:", nosana.solana.wallet.publicKey.toString());
 console.log(
   `SOL balance: ${(await nosana.solana.getSolBalance()) / 1000000000}`
@@ -36,7 +34,11 @@ async function postJobs(address, path, job_count) {
 
   for (let i = 0; i < job_count; i++) {
     try {
-      const response = await nosana.jobs.list(ipfs_hash, 60 * timeout, address);
+      const response = await nosana.jobs.list({
+        ipfsHash: ipfs_hash,
+        timeout: 60 * timeout,
+        market: address
+      });
 
       console.log(
         `Posted job to market: https://dashboard.nosana.com/jobs/${response.job}`
