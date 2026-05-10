@@ -60,25 +60,13 @@ async function main(address, path, max = 0) {
   }
 
   switch (market.queueType) {
-    case 0: // JOB_QUEUE
-      if (market.queue.length === 0) {
+    case 255: // EMPTY
         if (disable_empty_posting === "true") {
           console.log("Empty market queue posting is disabled.");
           break;
         }
         console.log("Found empty market queue.");
         await postJobs(address, path, 2);
-      } else {
-        console.log("Found job queue with items.");
-        let job_count = Math.ceil(market.queue.length / 2);
-
-        if (max > 0 && max <= job_count) {
-          job_count = max;
-        }
-
-        console.log(`Found ${market.queue.length} jobs in queue.`);
-        await postJobs(address, path, job_count);
-      }
       break;
     case 1: // NODE_QUEUE
       let job_count = Math.ceil(market.queue.length / 2);
